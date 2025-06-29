@@ -85,7 +85,7 @@ app.post('/api/initiate-payment', (req: Request, res: Response) => {
             widgetOptions,
         };
 
-        const reactAppUrl = process.env.NODE_ENV === 'production' ? process.env.REACT_APP_URL : 'http://localhost:5173';
+        const reactAppUrl = process.env.NODE_ENV === 'production' ? "https://client-pied-three-94.vercel.app" : 'http://localhost:5173';
 
         res.status(200).json({
             success: true,
