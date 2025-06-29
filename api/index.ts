@@ -34,11 +34,15 @@ const pendingTransactions: { [key: string]: TransactionData } = {};
 const app = express();
 const PORT = process.env.PORT || 3000;
 
-app.use(cors({
-    origin: ['*'],
-    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-    allowedHeaders: ['Content-Type', 'Authorization'],
-}));
+// Preflight istekleri için özel işleyici
+app.options('*', (req: Request, res: Response) => {
+    res.header('Access-Control-Allow-Origin', '*');
+    res.header('Access-Control-Allow-Methods', 'GET,POST,PUT,DELETE,OPTIONS');
+    res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+    res.sendStatus(204);
+});
+
+app.use(cors());
 app.use(express.json());
 
 app.post('/api/initiate-payment', (req: Request, res: Response) => {
