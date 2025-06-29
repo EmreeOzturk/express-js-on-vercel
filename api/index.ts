@@ -1,112 +1,154 @@
-require('dotenv').config();
+import express, { Request, Response } from 'express';
+import cors from 'cors';
+import dotenv from 'dotenv';
+import { signSmartContractData } from '@wert-io/widget-sc-signer';
+import { v4 as uuidv4 } from 'uuid';
+import { Web3 } from 'web3';
+import { Options } from '@wert-io/widget-initializer/types';
 
-const express = require('express');
+interface SignedData {
+    address: string;
+    commodity: string;
+    commodity_amount: number;
+    network: string;
+    sc_address: string;
+    sc_input_data: string;
+    signature: string;
+}
+
+interface WidgetOptions {
+    partner_id: string;
+    click_id: string;
+    origin: string;
+}
+
+interface TransactionData {
+    signedData: SignedData;
+    widgetOptions: WidgetOptions;
+}
+
+dotenv.config();
+
+const pendingTransactions: { [key: string]: TransactionData } = {};
+
 const app = express();
-const { sql } = require('@vercel/postgres');
+const PORT = process.env.PORT || 3000;
 
-const bodyParser = require('body-parser');
-const path = require('path');
+app.use(cors());
+app.use(express.json());
 
-// Create application/x-www-form-urlencoded parser
-const urlencodedParser = bodyParser.urlencoded({ extended: false });
+app.post('/api/initiate-payment', (req: Request, res: Response) => {
+    console.log('API /api/initiate-payment called with body:', req.body);
 
-app.use(express.static('public'));
+    try {
+        const { amount, userAddress, scAddress, fullName, email, gsmNumber } = req.body;
 
-app.get('/', function (req, res) {
-	res.sendFile(path.join(__dirname, '..', 'components', 'home.htm'));
+        if (!amount || !userAddress || !scAddress || !fullName || !email || !gsmNumber) {
+            return res.status(400).json({ success: false, message: 'Missing required fields' });
+        }
+
+        const privateKey = process.env.PRIVATE_KEY;
+        if (!privateKey) {
+            throw new Error('PRIVATE_KEY is not defined in .env file');
+        }
+
+        const web3 = new Web3();
+        const sc_input_data = web3.eth.abi.encodeFunctionCall(
+            {
+                inputs: [{ internalType: 'uint256', name: 'amount', type: 'uint256' }, { internalType: 'address', name: 'to', type: 'address' }],
+                name: 'buyWithUSDT',
+                outputs: [{ internalType: 'uint256', name: '', type: 'uint256' }],
+                stateMutability: 'payable',
+                type: 'function'
+            },
+            [web3.utils.toWei(amount.toString(), 'mwei'), userAddress]
+        );
+
+        const nftOptions: Options['extra'] = {
+            item_info: {
+                author: 'DLT Payment',
+                image_url: 'https://bafybeigoof7cyjq4dltaqpmmowmucmqtib7ohxd5pcxoickbu2mvihtnha.ipfs.w3s.link/vip_support_nft.jpeg',
+                name: 'VIP Support',
+                seller: 'DLT Payment',
+                header: 'VIP Support NFT'
+            },
+        };
+
+
+        const signedData = signSmartContractData({ address: userAddress, commodity: 'USDT', commodity_amount: amount, network: 'polygon', sc_address: scAddress, sc_input_data, }, privateKey);
+        const widgetOptions = { partner_id: '01JY1E0PXYR2SR3ZTY27HQ3GP1', click_id: uuidv4(), origin: 'https://widget.wert.io', extra: nftOptions };
+
+        const token = uuidv4();
+
+        pendingTransactions[token] = {
+            signedData,
+            widgetOptions,
+        };
+
+        const reactAppUrl = process.env.REACT_APP_URL;
+
+        res.status(200).json({
+            success: true,
+            paymentUrl: `${reactAppUrl}?token=${token}`,
+        });
+
+    } catch (error) {
+        console.error('Error during payment initiation:', error);
+        const message = error instanceof Error ? error.message : 'An unknown error occurred';
+        res.status(500).json({ success: false, message: `An error occurred: ${message}` });
+    }
 });
 
-app.get('/about', function (req, res) {
-	res.sendFile(path.join(__dirname, '..', 'components', 'about.htm'));
+app.get('/api/get-payment-data', (req: Request, res: Response) => {
+    const token = req.query.token as string;
+
+    if (!token) {
+        return res.status(400).json({ success: false, message: 'Token is missing' });
+    }
+
+    const transactionData = pendingTransactions[token];
+
+    if (!transactionData) {
+        return res.status(404).json({ success: false, message: 'Payment session not found or has expired' });
+    }
+
+    delete pendingTransactions[token];
+
+    res.status(200).json({
+        success: true,
+        ...transactionData,
+    });
 });
 
-app.get('/uploadUser', function (req, res) {
-	res.sendFile(path.join(__dirname, '..', 'components', 'user_upload_form.htm'));
+app.post('/api/webhooks/wert', (req: Request, res: Response) => {
+    console.log('--- Wert Webhook Received ---');
+
+    try {
+        const { type, click_id, order, user } = req.body;
+
+        console.log(`Event Type: ${type}`);
+        console.log(`Click ID: ${click_id}`);
+
+        if (order) {
+            console.log('Order Details:');
+            console.log(`  - Order ID: ${order.id}`);
+            console.log(`  - Status: ${type}`);
+            console.log(`  - Quote Amount: ${order.quote_amount} ${order.quote}`);
+            console.log(`  - Transaction ID: ${order.transaction_id}`);
+        }
+
+        if (user) {
+            console.log(`User ID: ${user.user_id}`);
+        }
+
+        res.status(200).send({ status: 'success', message: 'Webhook received' });
+
+    } catch (error) {
+        console.error('Error processing webhook:', error);
+        res.status(500).send({ status: 'error', message: 'Internal server error' });
+    }
 });
 
-app.post('/uploadSuccessful', urlencodedParser, async (req, res) => {
-	try {
-		await sql`INSERT INTO Users (Id, Name, Email) VALUES (${req.body.user_id}, ${req.body.name}, ${req.body.email});`;
-		res.status(200).send('<h1>User added successfully</h1>');
-	} catch (error) {
-		console.error(error);
-		res.status(500).send('Error adding user');
-	}
-});
-
-app.get('/allUsers', async (req, res) => {
-	try {
-		const users = await sql`SELECT * FROM Users;`;
-		if (users && users.rows.length > 0) {
-			let tableContent = users.rows
-				.map(
-					(user) =>
-						`<tr>
-                        <td>${user.id}</td>
-                        <td>${user.name}</td>
-                        <td>${user.email}</td>
-                    </tr>`
-				)
-				.join('');
-
-			res.status(200).send(`
-                <html>
-                    <head>
-                        <title>Users</title>
-                        <style>
-                            body {
-                                font-family: Arial, sans-serif;
-                            }
-                            table {
-                                width: 100%;
-                                border-collapse: collapse;
-                                margin-bottom: 15px;
-                            }
-                            th, td {
-                                border: 1px solid #ddd;
-                                padding: 8px;
-                                text-align: left;
-                            }
-                            th {
-                                background-color: #f2f2f2;
-                            }
-                            a {
-                                text-decoration: none;
-                                color: #0a16f7;
-                                margin: 15px;
-                            }
-                        </style>
-                    </head>
-                    <body>
-                        <h1>Users</h1>
-                        <table>
-                            <thead>
-                                <tr>
-                                    <th>User ID</th>
-                                    <th>Name</th>
-                                    <th>Email</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                ${tableContent}
-                            </tbody>
-                        </table>
-                        <div>
-                            <a href="/">Home</a>
-                            <a href="/uploadUser">Add User</a>
-                        </div>
-                    </body>
-                </html>
-            `);
-		} else {
-			res.status(404).send('Users not found');
-		}
-	} catch (error) {
-		console.error(error);
-		res.status(500).send('Error retrieving users');
-	}
-});
-
-app.listen(3000, () => console.log('Server ready on port 3000.'));
-
-module.exports = app;
+app.listen(PORT, () => {
+    console.log(`Backend server is running on http://localhost:${PORT}`);
+}); 
