@@ -131,7 +131,7 @@ app.get('/api/get-payment-data', (req: Request, res: Response) => {
     });
 });
 
-app.post('/api/webhooks', (req: Request, res: Response) => {
+app.post('/api/webhook', (req: Request, res: Response) => {
     console.log('--- Wert Webhook Received ---');
 
     try {
