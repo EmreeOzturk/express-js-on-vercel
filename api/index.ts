@@ -35,7 +35,7 @@ const app = express();
 const PORT = process.env.PORT || 3000;
 
 app.use(cors({
-    origin: ['https://client-pied-three-94.vercel.app', 'http://localhost:5173'],
+    origin: ['*'],
     methods: ['GET', 'POST', 'PUT', 'DELETE'],
     allowedHeaders: ['Content-Type', 'Authorization'],
 }));
