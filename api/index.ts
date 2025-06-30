@@ -67,7 +67,7 @@ app.post('/api/initiate-payment', (req: Request, res: Response) => {
         const sc_input_data = web3.eth.abi.encodeFunctionCall(
             {
                 inputs: [{ internalType: 'uint256', name: 'amount', type: 'uint256' }, { internalType: 'address', name: 'to', type: 'address' }],
-                name: 'buyWithUSDT',
+                name: 'buyWithPOL',
                 outputs: [{ internalType: 'uint256', name: '', type: 'uint256' }],
                 stateMutability: 'payable',
                 type: 'function'
@@ -86,7 +86,7 @@ app.post('/api/initiate-payment', (req: Request, res: Response) => {
         };
 
 
-        const signedData = signSmartContractData({ address: userAddress, commodity: 'TT', commodity_amount: amount, network: 'amoy', sc_address: scAddress, sc_input_data, }, privateKey);
+        const signedData = signSmartContractData({ address: userAddress, commodity: 'POL', commodity_amount: amount, network: 'amoy', sc_address: scAddress, sc_input_data, }, privateKey);
         const widgetOptions = { partner_id: '01JWWXA9V3M485Y5G43ERS0VYM', click_id: uuidv4(), origin: 'https://sandbox.wert.io', extra: nftOptions };
 
         const token = uuidv4();
