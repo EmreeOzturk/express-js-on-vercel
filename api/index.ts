@@ -6,6 +6,7 @@ import { v4 as uuidv4 } from 'uuid';
 import { Web3 } from 'web3';
 import { Options } from '@wert-io/widget-initializer/types';
 import { prisma } from '../lib/prisma';
+import { createSwipeluxCustomer } from '../services/walletService'
 
 interface SignedData {
     address: string;
@@ -34,6 +35,8 @@ const pendingTransactions: { [key: string]: TransactionData } = {};
 
 const app = express();
 
+const scAddress: string = "";
+
 app.use(cors({
     origin: ['http://localhost:5173', 'http://localhost:9000', 'https://client-pied-three-94.vercel.app', 'https://express-js-on-vercel-amber.vercel.app'],
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
@@ -46,19 +49,46 @@ app.post('/api/initiate-payment', async (req: any, res: any) => {
     console.log('API /initiate-payment called with body:', req.body);
 
     try {
-        const { amount, userAddress, scAddress, fullName, email, gsmNumber } = req.body;
+        const { amount, fullName, email, gsmNumber } = req.body;
 
-        if (!amount || !userAddress || !scAddress || !fullName || !email || !gsmNumber) {
+        if (!amount || !fullName || !email || !gsmNumber) {
             return res.status(400).json({ success: false, message: 'Missing required fields' });
         }
 
+        /**
+         * Gelen gsmNumber ile dbde kayıtlı user var mı kontrol et. 
+         * Eğer varsa bu kayıttaki wallet adresini kullanacağız.
+         */
+
         // Check if user is blacklisted
         const user = await prisma.user.findFirst({
-            where: { OR: [{ email }, { walletAddress: userAddress }] }
+            where: { gsmNumber: gsmNumber }
         });
 
         if (user?.isBlacklisted) {
             return res.status(403).json({ success: false, message: 'User is blacklisted' });
+        }
+
+        let userAddress: string = "";
+        if (user) {
+            userAddress = user?.walletAddress || "";
+        }
+        else{
+            const swipeluxResponseData = await createSwipeluxCustomer({
+                firstName: fullName.split(" ")[0] || fullName,
+                lastName: fullName.split(" ").slice(1).join(" ") || fullName,
+                email,
+                phone: gsmNumber,
+                birthDate: "1990-01-01"
+            });
+
+            if (swipeluxResponseData) {
+                userAddress = swipeluxResponseData.walletAddresses[0];
+            }
+        }
+
+        if (!userAddress) {
+            return res.status(403).json({ success: false, message: 'Missing userAddress' });
         }
 
         const privateKey = process.env.PRIVATE_KEY;
