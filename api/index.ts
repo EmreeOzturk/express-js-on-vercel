@@ -42,7 +42,7 @@ app.use(cors({
 app.use(express.json());
 
 
-app.post('/initiate-payment', async (req: any, res: any) => {
+app.post('/api/initiate-payment', async (req: any, res: any) => {
     console.log('API /initiate-payment called with body:', req.body);
 
     try {
@@ -124,7 +124,7 @@ app.post('/initiate-payment', async (req: any, res: any) => {
     }
 });
 
-app.get('/get-payment-data', (req: any, res: any) => {
+app.get('/api/get-payment-data', (req: any, res: any) => {
     const token = req.query.token as string;
 
     if (!token) {
@@ -145,7 +145,7 @@ app.get('/get-payment-data', (req: any, res: any) => {
     });
 });
 
-app.post('/webhook', async (req: any, res: any) => {
+app.post('/api/webhook', async (req: any, res: any) => {
     console.log('--- Wert Webhook Received ---');
     const { type, click_id, order, user } = req.body;
 
