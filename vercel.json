@@ -1,4 +1,10 @@
 {
 	"version": 2,
-	"rewrites": [{ "source": "/api/(.*)", "destination": "/api" }]
+	"builds": [
+		{
+			"src": "api/index.ts",
+			"use": "@vercel/node"
+		}
+	],
+	"rewrites": [{ "source": "/(.*)", "destination": "/api/index.ts" }]
 }
