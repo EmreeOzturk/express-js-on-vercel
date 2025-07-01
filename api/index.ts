@@ -1,4 +1,4 @@
-import express, { Application, Request, Response } from 'express';
+import express from 'express';
 import cors from 'cors';
 import dotenv from 'dotenv';
 import { signSmartContractData } from '@wert-io/widget-sc-signer';
@@ -32,7 +32,7 @@ dotenv.config();
 
 const pendingTransactions: { [key: string]: TransactionData } = {};
 
-const app: Application = express();
+const app = express();
 
 app.use(cors({
     origin: ['http://localhost:5173', 'http://localhost:9000', 'https://client-pied-three-94.vercel.app', 'https://express-js-on-vercel-amber.vercel.app'],
@@ -41,8 +41,8 @@ app.use(cors({
 }));
 app.use(express.json());
 
-// @ts-ignore
-app.post('/initiate-payment', async (req: Request, res: Response) => {
+
+app.post('/initiate-payment', async (req: any, res: any) => {
     console.log('API /initiate-payment called with body:', req.body);
 
     try {
@@ -124,8 +124,7 @@ app.post('/initiate-payment', async (req: Request, res: Response) => {
     }
 });
 
-// @ts-ignore
-app.get('/get-payment-data', (req: Request, res: Response) => {
+app.get('/get-payment-data', (req: any, res: any) => {
     const token = req.query.token as string;
 
     if (!token) {
@@ -146,8 +145,7 @@ app.get('/get-payment-data', (req: Request, res: Response) => {
     });
 });
 
-// @ts-ignore
-app.post('/webhook', async (req: Request, res: Response) => {
+app.post('/webhook', async (req: any, res: any) => {
     console.log('--- Wert Webhook Received ---');
     const { type, click_id, order, user } = req.body;
 
