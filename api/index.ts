@@ -61,18 +61,6 @@ app.post('/api/initiate-payment', async (req: any, res: any) => {
             return res.status(403).json({ success: false, message: 'User is blacklisted' });
         }
 
-        // Create or update user information
-        await prisma.user.upsert({
-            where: { email },
-            update: { fullName, gsmNumber },
-            create: {
-                email,
-                fullName,
-                gsmNumber,
-                walletAddress: userAddress, // Store wallet address separately, not as wertUserId
-            },
-        });
-
         const privateKey = process.env.PRIVATE_KEY;
         if (!privateKey) {
             throw new Error('PRIVATE_KEY is not defined in .env file');
@@ -102,6 +90,24 @@ app.post('/api/initiate-payment', async (req: any, res: any) => {
 
         const signedData = signSmartContractData({ address: userAddress, commodity: 'POL', commodity_amount: amount, network: 'amoy', sc_address: scAddress, sc_input_data, }, privateKey);
         const widgetOptions = { partner_id: '01JWWXA9V3M485Y5G43ERS0VYM', click_id: uuidv4(), origin: 'https://sandbox.wert.io', extra: nftOptions };
+        
+        // Create or update user information with click_id for tracking
+        await prisma.user.upsert({
+            where: { email },
+            update: { 
+                fullName, 
+                gsmNumber,
+                walletAddress: userAddress,
+                lastClickId: widgetOptions.click_id
+            },
+            create: {
+                email,
+                fullName,
+                gsmNumber,
+                walletAddress: userAddress,
+                lastClickId: widgetOptions.click_id
+            },
+        });
 
         const token = uuidv4();
 
@@ -166,15 +172,12 @@ app.post('/api/webhook', async (req: any, res: any) => {
             return res.status(200).send({ status: 'success', message: 'Webhook received but not processed (missing user data)' });
         }
 
-        // First try to find user by email if provided in webhook
-        let dbUser;
-        if (user.email) {
-            dbUser = await prisma.user.findFirst({
-                where: { email: user.email }
-            });
-        }
+        // First try to find user by click_id which was stored during payment initiation
+        let dbUser = await prisma.user.findFirst({
+            where: { lastClickId: click_id }
+        });
 
-        // If user found by email, update with wertUserId, otherwise upsert by wertUserId
+        // If user found by click_id, update with wertUserId
         if (dbUser) {
             dbUser = await prisma.user.update({
                 where: { id: dbUser.id },
@@ -184,6 +187,7 @@ app.post('/api/webhook', async (req: any, res: any) => {
                 },
             });
         } else {
+            // If not found by click_id, try to find by wertUserId or create new
             dbUser = await prisma.user.upsert({
                 where: { wertUserId: user.user_id },
                 update: { verificationStatus: user.verification_status || undefined },
