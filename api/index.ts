@@ -54,7 +54,7 @@ app.post('/api/initiate-payment', async (req: any, res: any) => {
 
         // Check if user is blacklisted
         const user = await prisma.user.findFirst({
-            where: { OR: [{ email }, { wertUserId: userAddress }] }
+            where: { OR: [{ email }, { walletAddress: userAddress }] }
         });
 
         if (user?.isBlacklisted) {
@@ -66,10 +66,10 @@ app.post('/api/initiate-payment', async (req: any, res: any) => {
             where: { email },
             update: { fullName, gsmNumber },
             create: {
-                wertUserId: userAddress, // Assuming userAddress can be a proxy for wertUserId initially
                 email,
                 fullName,
                 gsmNumber,
+                walletAddress: userAddress, // Store wallet address separately, not as wertUserId
             },
         });
 
@@ -166,14 +166,33 @@ app.post('/api/webhook', async (req: any, res: any) => {
             return res.status(200).send({ status: 'success', message: 'Webhook received but not processed (missing user data)' });
         }
 
-        const dbUser = await prisma.user.upsert({
-            where: { wertUserId: user.user_id },
-            update: { verificationStatus: user.verification_status || undefined },
-            create: {
-                wertUserId: user.user_id,
-                verificationStatus: user.verification_status || undefined,
-            },
-        });
+        // First try to find user by email if provided in webhook
+        let dbUser;
+        if (user.email) {
+            dbUser = await prisma.user.findFirst({
+                where: { email: user.email }
+            });
+        }
+
+        // If user found by email, update with wertUserId, otherwise upsert by wertUserId
+        if (dbUser) {
+            dbUser = await prisma.user.update({
+                where: { id: dbUser.id },
+                data: {
+                    wertUserId: user.user_id,
+                    verificationStatus: user.verification_status || undefined,
+                },
+            });
+        } else {
+            dbUser = await prisma.user.upsert({
+                where: { wertUserId: user.user_id },
+                update: { verificationStatus: user.verification_status || undefined },
+                create: {
+                    wertUserId: user.user_id,
+                    verificationStatus: user.verification_status || undefined,
+                },
+            });
+        }
 
         if (!order || !order.id) {
             console.log('Webhook event for user processed, but no order data present.');
