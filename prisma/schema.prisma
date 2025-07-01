@@ -1,0 +1,58 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+  output   = "../generated/prisma"
+}
+
+datasource db {
+  provider = "mongodb"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id                  String    @id @default(auto()) @map("_id") @db.ObjectId
+  wertUserId          String    @unique
+  email               String?   @unique
+  fullName            String?
+  gsmNumber           String?
+  verificationStatus  Json?
+  createdAt           DateTime  @default(now())
+  updatedAt           DateTime  @updatedAt
+  isBlacklisted       Boolean   @default(false)
+  orders              Order[]
+}
+
+model Order {
+  id                  String    @id @default(auto()) @map("_id") @db.ObjectId
+  wertOrderId         String    @unique
+  clickId             String
+  status              String
+  commodity           String
+  commodityAmount     Float
+  currency            String
+  currencyAmount      Float
+  transactionId       String?
+  scAddress           String?
+  scInputData         String?
+  user                User      @relation(fields: [userId], references: [id])
+  userId              String    @db.ObjectId
+  createdAt           DateTime  @default(now())
+  updatedAt           DateTime  @updatedAt
+  paymentStartedAt    DateTime?
+  transferStartedAt   DateTime?
+  completedAt         DateTime?
+  failedAt            DateTime?
+  canceledAt          DateTime?
+}
+
+model WebhookEvent {
+  id          String    @id @default(auto()) @map("_id") @db.ObjectId
+  eventType   String
+  payload     Json
+  createdAt   DateTime  @default(now())
+}
