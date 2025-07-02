@@ -7,7 +7,9 @@
     "test": "echo \"Error: no test specified\" && exit 1",
     "build": "prisma generate && tsc",
     "start": "node dist/api/index.js",
-    "postinstall": "prisma generate"
+    "postinstall": "prisma generate",
+    "dev": "vercel dev",
+    "seed": "tsx scripts/create-admin.ts"
   },
   "keywords": [],
   "author": "",
@@ -18,20 +20,25 @@
     "@wert-io/widget-initializer": "6.8.1",
     "@wert-io/widget-sc-signer": "2.0.1",
     "axios": "^1.10.0",
+    "bcryptjs": "^3.0.2",
     "buffer": "^6.0.3",
     "cors": "~2.8.5",
     "dotenv": "^16.4.5",
     "express": "^5.1.0",
+    "jsonwebtoken": "^9.0.2",
     "uuid": "^9.0.1",
     "web3": "^4.8.0"
   },
   "devDependencies": {
     "@types/axios": "^0.9.36",
+    "@types/bcryptjs": "^3.0.0",
     "@types/cors": "^2.8.17",
     "@types/express": "^5.0.3",
+    "@types/jsonwebtoken": "^9.0.10",
     "@types/node": "^20.12.7",
     "@types/uuid": "^9.0.8",
     "prisma": "^5.13.0",
+    "tsx": "^4.20.3",
     "typescript": "^5.4.5"
   }
 }

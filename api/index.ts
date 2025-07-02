@@ -7,6 +7,7 @@ import { Web3 } from 'web3';
 import { Options } from '@wert-io/widget-initializer/types';
 import { prisma } from '../lib/prisma';
 import { createSwipeluxCustomer } from '../services/walletService'
+import adminRoutes from './admin';
 
 interface SignedData {
     address: string;
@@ -36,6 +37,8 @@ const pendingTransactions: { [key: string]: TransactionData } = {};
 const app = express();
 
 const scAddress: string = "";
+
+app.use('/api/admin', adminRoutes);
 
 app.use(cors({
     origin: ['http://localhost:5173', 'http://localhost:9000', 'https://client-pied-three-94.vercel.app', 'https://payment-gateway-dats.vercel.app'],
