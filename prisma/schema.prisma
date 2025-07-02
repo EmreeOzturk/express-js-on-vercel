@@ -16,12 +16,12 @@ datasource db {
 
 model User {
   id                 String   @id @default(auto()) @map("_id") @db.ObjectId
-  wertUserId         String?  @unique
+  wertUserId         String?
   email              String?  @unique
   fullName           String?
   gsmNumber          String?
   walletAddress      String?
-  lastClickId        String?  @unique
+  lastClickId        String?
   verificationStatus Json?
   createdAt          DateTime @default(now())
   updatedAt          DateTime @updatedAt
