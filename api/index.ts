@@ -39,7 +39,7 @@ const app = express();
 const scAddress: string = "0x69EdA8b0601C34f3BD0fdAEd7B252D2Db133A4A9";
 
 app.use(cors({
-    origin: ['http://localhost:5173', 'http://localhost:9000', 'https://client-pied-three-94.vercel.app', 'https://payment-gateway-dats.vercel.app'],
+    origin: ['http://localhost:5173', 'http://localhost:9000', 'https://client-pied-three-94.vercel.app', 'https://payment-gateway-dats.vercel.app', 'https://simulate-payment.vercel.app'],
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
     allowedHeaders: ['Content-Type', 'Authorization'],
 }));
