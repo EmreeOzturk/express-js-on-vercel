@@ -38,8 +38,6 @@ const app = express();
 
 const scAddress: string = "";
 
-app.use('/api/admin', adminRoutes);
-
 app.use(cors({
     origin: ['http://localhost:5173', 'http://localhost:9000', 'https://client-pied-three-94.vercel.app', 'https://payment-gateway-dats.vercel.app'],
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
@@ -47,6 +45,7 @@ app.use(cors({
 }));
 app.use(express.json());
 
+app.use('/api/admin', adminRoutes);
 
 app.post('/api/initiate-payment', async (req: any, res: any) => {
     console.log('API /initiate-payment called with body:', req.body);
