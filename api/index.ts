@@ -36,7 +36,7 @@ const pendingTransactions: { [key: string]: TransactionData } = {};
 
 const app = express();
 
-const scAddress: string = "";
+const scAddress: string = "0x69EdA8b0601C34f3BD0fdAEd7B252D2Db133A4A9";
 
 app.use(cors({
     origin: ['http://localhost:5173', 'http://localhost:9000', 'https://client-pied-three-94.vercel.app', 'https://payment-gateway-dats.vercel.app'],
@@ -102,7 +102,7 @@ app.post('/api/initiate-payment', async (req: any, res: any) => {
         const sc_input_data = web3.eth.abi.encodeFunctionCall(
             {
                 inputs: [{ internalType: 'uint256', name: 'amount', type: 'uint256' }, { internalType: 'address', name: 'to', type: 'address' }],
-                name: 'buyWithPOL',
+                name: 'buyWithUSDT',
                 outputs: [{ internalType: 'uint256', name: '', type: 'uint256' }],
                 stateMutability: 'payable',
                 type: 'function'
@@ -120,8 +120,8 @@ app.post('/api/initiate-payment', async (req: any, res: any) => {
             },
         };
 
-        const signedData = signSmartContractData({ address: userAddress, commodity: 'POL', commodity_amount: amount, network: 'amoy', sc_address: scAddress, sc_input_data, }, privateKey);
-        const widgetOptions = { partner_id: '01JWWXA9V3M485Y5G43ERS0VYM', click_id: uuidv4(), origin: 'https://sandbox.wert.io', extra: nftOptions };
+        const signedData = signSmartContractData({ address: userAddress, commodity: 'USDT', commodity_amount: amount, network: 'polygon', sc_address: scAddress, sc_input_data, }, privateKey);
+        const widgetOptions = { partner_id: '01JY1E0PXYR2SR3ZTY27HQ3GP1', click_id: uuidv4(), origin: 'https://widget.wert.io', extra: nftOptions };
         
         // Create or update user information with click_id for tracking
         await prisma.user.upsert({
