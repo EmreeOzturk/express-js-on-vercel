@@ -98,12 +98,38 @@ app.post('/api/initiate-payment', async (req: any, res: any) => {
             return res.status(400).json({ success: false, message: 'Missing required fields' });
         }
 
+        const stakeholderDailyLimit = 1000;
+        const today = new Date();
+        const startOfDay = new Date(today.getFullYear(), today.getMonth(), today.getDate());
+        const endOfDay = new Date(today.getFullYear(), today.getMonth(), today.getDate() + 1);
+
+        const completedOrdersToday = await prisma.order.findMany({
+            where: {
+                scAddress: scAddress,
+                status: 'order_complete',
+                completedAt: {
+                    gte: startOfDay,
+                    lt: endOfDay
+                }
+            }
+        });
+
+        const totalCompletedAmountToday = completedOrdersToday.reduce((sum, order) => {
+            return sum + (order.currencyAmount || 0);
+        }, 0);
+
+        if (totalCompletedAmountToday + amount > stakeholderDailyLimit) {
+            return res.status(503).json({ 
+                success: false, 
+                message: 'System is under maintenance. Please try again later.' 
+            });
+        }
+
         /**
          * Gelen gsmNumber ile dbde kayıtlı user var mı kontrol et. 
          * Eğer varsa bu kayıttaki wallet adresini kullanacağız.
          */
 
-        // Check if user is blacklisted
         const user = await prisma.user.findFirst({
             where: { gsmNumber: gsmNumber }
         });
