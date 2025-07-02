@@ -11,6 +11,22 @@ if (JWT_SECRET === 'your-default-secret') {
     console.warn('Warning: JWT_SECRET is not set in environment variables. Using a default, insecure secret.');
 }
 
+// Domain validation utility
+const isValidDomain = (domain: string): boolean => {
+    try {
+        const url = new URL(domain);
+        // Allow http/https protocols and localhost for development
+        if (!['http:', 'https:'].includes(url.protocol)) {
+            return false;
+        }
+        // Basic domain format validation
+        const domainRegex = /^[a-zA-Z0-9]([a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(\.[a-zA-Z0-9]([a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*$/;
+        return domainRegex.test(url.hostname) || url.hostname === 'localhost';
+    } catch {
+        return false;
+    }
+};
+
 // Admin Login
 router.post('/login', async (req: any, res: any) => {
     const { username, password } = req.body;
@@ -124,6 +140,114 @@ router.get('/orders', authenticateToken, async (req: any, res: any) => {
     } catch (error) {
         console.error('Error fetching orders:', error);
         res.status(500).json({ success: false, message: 'An internal error occurred' });
+    }
+});
+
+router.get('/cors-clients', authenticateToken, async (req: any, res: any) => {
+    try {
+        const clients = await prisma.corsClient.findMany({
+            orderBy: {
+                createdAt: 'desc',
+            },
+        });
+        res.json({ success: true, clients });
+    } catch (error) {
+        console.error('Error fetching CORS clients:', error);
+        res.status(500).json({ success: false, message: 'Failed to fetch CORS clients' });
+    }
+});
+
+router.post('/cors-clients', authenticateToken, async (req: any, res: any) => {
+    const { domain } = req.body;
+
+    if (!domain) {
+        return res.status(400).json({ success: false, message: 'Domain is required' });
+    }
+
+    // Validate domain format
+    if (!isValidDomain(domain)) {
+        return res.status(400).json({ success: false, message: 'Invalid domain format' });
+    }
+
+    try {
+        const client = await prisma.corsClient.create({
+            data: {
+                domain: domain.toLowerCase(), // Store in lowercase for consistency
+            },
+        });
+
+        res.json({ 
+            success: true, 
+            message: 'CORS client added successfully',
+            client 
+        });
+    } catch (error: any) {
+        // P2002 is Prisma's error code for unique constraint violation
+        if (error.code === 'P2002') {
+            return res.status(409).json({ success: false, message: 'Domain already exists' });
+        }
+        console.error('Error adding CORS client:', error);
+        res.status(500).json({ success: false, message: 'Failed to add CORS client' });
+    }
+});
+
+router.delete('/cors-clients/:id', authenticateToken, async (req: any, res: any) => {
+    const { id } = req.params;
+
+    if (!id) {
+        return res.status(400).json({ success: false, message: 'Client ID is required' });
+    }
+
+    try {
+        await prisma.corsClient.delete({
+            where: { id },
+        });
+
+        res.json({ success: true, message: 'CORS client deleted successfully' });
+    } catch (error: any) {
+        // P2025 is Prisma's error code for "record not found" on delete
+        if (error.code === 'P2025') {
+            return res.status(404).json({ success: false, message: 'CORS client not found' });
+        }
+        console.error('Error deleting CORS client:', error);
+        res.status(500).json({ success: false, message: 'Failed to delete CORS client' });
+    }
+});
+
+router.patch('/cors-clients/:id/toggle', authenticateToken, async (req: any, res: any) => {
+    const { id } = req.params;
+
+    if (!id) {
+        return res.status(400).json({ success: false, message: 'Client ID is required' });
+    }
+
+    try {
+        // First get the current status
+        const currentClient = await prisma.corsClient.findUnique({
+            where: { id },
+        });
+
+        if (!currentClient) {
+            return res.status(404).json({ success: false, message: 'CORS client not found' });
+        }
+
+        // Toggle the status
+        const updatedClient = await prisma.corsClient.update({
+            where: { id },
+            data: { isActive: !currentClient.isActive },
+        });
+
+        res.json({ 
+            success: true, 
+            message: `CORS client ${updatedClient.isActive ? 'activated' : 'deactivated'} successfully`,
+            client: updatedClient
+        });
+    } catch (error: any) {
+        if (error.code === 'P2025') {
+            return res.status(404).json({ success: false, message: 'CORS client not found' });
+        }
+        console.error('Error toggling CORS client status:', error);
+        res.status(500).json({ success: false, message: 'Failed to toggle CORS client status' });
     }
 });
 

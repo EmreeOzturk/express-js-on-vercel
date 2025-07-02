@@ -38,11 +38,52 @@ const app = express();
 
 const scAddress: string = "0x69EdA8b0601C34f3BD0fdAEd7B252D2Db133A4A9";
 
-app.use(cors({
-    origin: ['http://localhost:5173', 'http://localhost:9000', 'https://client-pied-three-94.vercel.app', 'https://payment-gateway-dats.vercel.app', 'https://simulate-payment.vercel.app'],
-    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-    allowedHeaders: ['Content-Type', 'Authorization'],
-}));
+// Dynamic CORS configuration
+const dynamicCors = cors(async (req, callback) => {
+    try {
+        const corsClients = await prisma.corsClient.findMany({
+            where: { isActive: true },
+            select: { domain: true }
+        });
+
+        // Default allowed origins for development and core services
+        const defaultOrigins = [
+            'http://localhost:5173',
+            'http://localhost:9000', 
+            'https://client-pied-three-94.vercel.app',
+            'https://payment-gateway-dats.vercel.app',
+            'https://simulate-payment.vercel.app'
+        ];
+
+        // Combine default origins with dynamic ones
+        const dynamicOrigins = corsClients.map(client => client.domain);
+        const allowedOrigins = [...defaultOrigins, ...dynamicOrigins];
+
+        callback(null, {
+            origin: allowedOrigins,
+            methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS', 'PATCH'],
+            allowedHeaders: ['Content-Type', 'Authorization'],
+            credentials: true
+        });
+    } catch (error) {
+        console.error('Error fetching CORS clients:', error);
+        // Fallback to default origins if database query fails
+        callback(null, {
+            origin: [
+                'http://localhost:5173',
+                'http://localhost:9000', 
+                'https://client-pied-three-94.vercel.app',
+                'https://payment-gateway-dats.vercel.app',
+                'https://simulate-payment.vercel.app'
+            ],
+            methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS', 'PATCH'],
+            allowedHeaders: ['Content-Type', 'Authorization'],
+            credentials: true
+        });
+    }
+});
+
+app.use(dynamicCors);
 app.use(express.json());
 
 app.use('/api/admin', adminRoutes);
