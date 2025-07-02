@@ -52,7 +52,6 @@ const dynamicCors = cors(async (req, callback) => {
             'http://localhost:9000', 
             'https://client-pied-three-94.vercel.app',
             'https://payment-gateway-dats.vercel.app',
-            'https://simulate-payment.vercel.app'
         ];
 
         // Combine default origins with dynamic ones
