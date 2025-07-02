@@ -21,7 +21,7 @@ model User {
   fullName           String?
   gsmNumber          String?
   walletAddress      String?
-  lastClickId        String?
+  lastClickId        String?  @unique
   verificationStatus Json?
   createdAt          DateTime @default(now())
   updatedAt          DateTime @updatedAt
