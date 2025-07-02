@@ -85,6 +85,30 @@ router.post('/users/blacklist', authenticateToken, async (req: any, res: any) =>
     }
 });
 
+// Un-blacklist a user
+router.post('/users/unblacklist', authenticateToken, async (req: any, res: any) => {
+    const { userId } = req.body;
+
+    if (!userId) {
+        return res.status(400).json({ success: false, message: 'User ID is required' });
+    }
+
+    try {
+        await prisma.user.update({
+            where: { id: userId },
+            data: { isBlacklisted: false },
+        });
+
+        res.json({ success: true, message: 'User successfully removed from blacklist' });
+    } catch (error: any) {
+        if (error.code === 'P2025') {
+            return res.status(404).json({ success: false, message: 'User not found' });
+        }
+        console.error('Error un-blacklisting user:', error);
+        res.status(500).json({ success: false, message: 'An internal error occurred' });
+    }
+});
+
 // Get all orders
 router.get('/orders', authenticateToken, async (req: any, res: any) => {
     try {
