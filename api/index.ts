@@ -220,14 +220,20 @@ app.post('/api/webhook', async (req: any, res: any) => {
             });
         } else {
             // If not found by click_id, try to find by wertUserId or create new
-            dbUser = await prisma.user.upsert({
-                where: { wertUserId: user.user_id },
-                update: { verificationStatus: user.verification_status || undefined },
-                create: {
-                    wertUserId: user.user_id,
-                    verificationStatus: user.verification_status || undefined,
-                },
-            });
+            const existingUser = await prisma.user.findFirst({ where: { wertUserId: user.user_id } });
+            if (existingUser) {
+                dbUser = await prisma.user.update({
+                    where: { id: existingUser.id },
+                    data: { verificationStatus: user.verification_status || undefined },
+                });
+            } else {
+                dbUser = await prisma.user.create({
+                    data: {
+                        wertUserId: user.user_id,
+                        verificationStatus: user.verification_status || undefined,
+                    },
+                });
+            }
         }
 
         if (!order || !order.id) {
