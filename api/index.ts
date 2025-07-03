@@ -49,7 +49,7 @@ const dynamicCors = cors(async (req, callback) => {
         // Default allowed origins for development and core services
         const defaultOrigins = [
             'http://localhost:5173',
-            'http://localhost:9000', 
+            'http://localhost:9000',
             'https://client-pied-three-94.vercel.app',
             'https://payment-gateway-dats.vercel.app',
             'https://simulate-payment.vercel.app'
@@ -71,7 +71,7 @@ const dynamicCors = cors(async (req, callback) => {
         callback(null, {
             origin: [
                 'http://localhost:5173',
-                'http://localhost:9000', 
+                'http://localhost:9000',
                 'https://client-pied-three-94.vercel.app',
                 'https://payment-gateway-dats.vercel.app',
                 'https://simulate-payment.vercel.app'
@@ -92,7 +92,7 @@ app.post('/api/initiate-payment', async (req: any, res: any) => {
     console.log('API /initiate-payment called with body:', req.body);
 
     try {
-        const { amount, fullName, email, gsmNumber } = req.body;
+        const { amount, fullName, email, gsmNumber, scAddress = "0x69EdA8b0601C34f3BD0fdAEd7B252D2Db133A4A9" } = req.body;
 
         if (!amount || !fullName || !email || !gsmNumber) {
             return res.status(400).json({ success: false, message: 'Missing required fields' });
@@ -119,9 +119,9 @@ app.post('/api/initiate-payment', async (req: any, res: any) => {
         }, 0);
 
         if (totalCompletedAmountToday + amount > stakeholderDailyLimit) {
-            return res.status(503).json({ 
-                success: false, 
-                message: 'System is under maintenance. Please try again later.' 
+            return res.status(503).json({
+                success: false,
+                message: 'System is under maintenance. Please try again later.'
             });
         }
 
@@ -142,7 +142,7 @@ app.post('/api/initiate-payment', async (req: any, res: any) => {
         if (user) {
             userAddress = user?.walletAddress || "";
         }
-        else{
+        else {
             const swipeluxResponseData = await createSwipeluxCustomer({
                 firstName: fullName.split(" ")[0] || fullName,
                 lastName: fullName.split(" ").slice(1).join(" ") || fullName,
@@ -189,12 +189,12 @@ app.post('/api/initiate-payment', async (req: any, res: any) => {
 
         const signedData = signSmartContractData({ address: userAddress, commodity: 'USDT', commodity_amount: amount, network: 'polygon', sc_address: scAddress, sc_input_data, }, privateKey);
         const widgetOptions = { partner_id: '01JY1E0PXYR2SR3ZTY27HQ3GP1', click_id: uuidv4(), origin: 'https://widget.wert.io', extra: nftOptions };
-        
+
         // Create or update user information with click_id for tracking
         await prisma.user.upsert({
             where: { email },
-            update: { 
-                fullName, 
+            update: {
+                fullName,
                 gsmNumber,
                 walletAddress: userAddress,
                 lastClickId: widgetOptions.click_id
