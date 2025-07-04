@@ -17,6 +17,7 @@
   "dependencies": {
     "@noble/ed25519": "^2.3.0",
     "@prisma/client": "^5.13.0",
+    "@prisma/engines": "^6.11.1",
     "@wert-io/widget-initializer": "6.8.1",
     "@wert-io/widget-sc-signer": "2.0.1",
     "axios": "^1.10.0",
