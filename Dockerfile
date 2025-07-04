@@ -7,7 +7,7 @@ COPY package*.json pnpm-lock.yaml* ./
 
 # Install pnpm and all dependencies
 RUN npm install -g pnpm@8.6.10 && \
-    pnpm install --frozen-lockfile
+    pnpm install
 
 # Copy source code
 COPY . .
@@ -28,7 +28,7 @@ RUN npm install -g pnpm@8.6.10
 COPY package*.json pnpm-lock.yaml* ./
 
 # Install only production dependencies (skip postinstall scripts)
-RUN pnpm install --frozen-lockfile --prod --ignore-scripts
+RUN pnpm install --prod --ignore-scripts
 
 # Copy built application and Prisma schema
 COPY --from=build /app/dist ./dist
