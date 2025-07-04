@@ -1,4 +1,90 @@
+# Dependencies
 node_modules
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# Environment files
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# Build outputs (sadece source'u build ederiz)
 dist
 build
-.env 
+.next
+out
+
+# Git
+.git
+.gitignore
+
+# Documentation
+README.md
+*.md
+
+# Editor files
+.vscode
+.idea
+*.swp
+*.swo
+
+# OS generated files
+.DS_Store
+.DS_Store?
+._*
+Thumbs.db
+
+# Logs
+logs
+*.log
+
+# Coverage
+coverage
+*.lcov
+.nyc_output
+
+# Cache directories
+.cache
+.parcel-cache
+.npm
+.eslintcache
+
+# Test files
+test/
+tests/
+__tests__/
+*.test.js
+*.test.ts
+*.spec.js
+*.spec.ts
+
+# Vercel
+.vercel
+
+# MongoDB - Mount edilecek, build'e gerek yok
+mongodb.key
+*.key
+*.pem
+
+# Docker
+Dockerfile
+docker-compose.yml
+.dockerignore
+
+# CI/CD
+.github/
+.gitlab-ci.yml
+.travis.yml
+
+# Development scripts
+scripts/dev/
+scripts/test/
+
+# Database files
+*.db
+*.sqlite
+*.sqlite3 
