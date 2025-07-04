@@ -8,6 +8,7 @@ import { Options } from '@wert-io/widget-initializer/types';
 import { prisma } from '../lib/prisma';
 import { createSwipeluxCustomer } from '../services/walletService'
 import adminRoutes from './admin';
+import { postWebhookData } from '../services/integrationService';
 
 interface SignedData {
     address: string;
@@ -261,6 +262,17 @@ app.post('/api/webhook', async (req: any, res: any) => {
                 payload: req.body,
             },
         });
+
+        // send external webhook to dlt payment
+        const response = await postWebhookData({
+            type: type,
+            payload: req.body,
+        });
+
+        console.log('External webhook response:', response.data);
+        if (response.status !== 200) {
+            console.log('External webhook failed:', response.data);
+        }
 
         console.log(`Event Type: ${type}, Click ID: ${click_id}`);
         if (order) console.log('Order Details:', order);
