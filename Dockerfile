@@ -27,15 +27,15 @@ RUN npm install -g pnpm@8.6.10
 # Copy package files
 COPY package*.json pnpm-lock.yaml* ./
 
-# Install only production dependencies (skip postinstall scripts)
-RUN pnpm install --prod --ignore-scripts
+# Install production dependencies including prisma
+RUN pnpm install --prod
 
 # Copy built application and Prisma schema
 COPY --from=build /app/dist ./dist
 COPY --from=build /app/prisma ./prisma
 
-# Copy generated Prisma client from build stage
-COPY --from=build /app/prisma/generated ./prisma/generated
+# Generate Prisma client in production stage
+RUN npx prisma generate --schema=./prisma/schema.prisma
 
 EXPOSE 3001
 
