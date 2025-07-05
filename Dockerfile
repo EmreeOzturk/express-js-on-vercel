@@ -22,6 +22,9 @@ FROM node:20-alpine AS production
 
 WORKDIR /app
 
+# Install OpenSSL and other required packages for Prisma
+RUN apk add --no-cache openssl1.1-compat libc6-compat
+
 # Install pnpm
 RUN npm install -g pnpm@8.6.10
 
@@ -35,7 +38,7 @@ RUN pnpm install --prod
 # Copy built application
 COPY --from=build /app/dist ./dist
 
-# Generate Prisma client in production stage
+# Generate Prisma client in production stage with correct binary target
 RUN npx prisma generate --schema=./prisma/schema.prisma
 
 EXPOSE 3001
