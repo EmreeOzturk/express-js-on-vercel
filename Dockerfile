@@ -34,8 +34,8 @@ RUN pnpm install --prod --ignore-scripts
 COPY --from=build /app/dist ./dist
 COPY --from=build /app/prisma ./prisma
 
-# Generate Prisma client in production
-RUN npx prisma generate --schema=./prisma/schema.prisma
+# Copy generated Prisma client from build stage
+COPY --from=build /app/prisma/generated ./prisma/generated
 
 EXPOSE 3001
 
