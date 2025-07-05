@@ -2,14 +2,15 @@ FROM node:20 AS build
 
 WORKDIR /app
 
-# Copy package files
+# Copy package files and Prisma schema first
 COPY package*.json pnpm-lock.yaml* ./
+COPY prisma ./prisma
 
 # Install pnpm and all dependencies
 RUN npm install -g pnpm@8.6.10 && \
     pnpm install
 
-# Copy source code
+# Copy rest of source code
 COPY . .
 
 # Generate Prisma client and build
@@ -24,15 +25,15 @@ WORKDIR /app
 # Install pnpm
 RUN npm install -g pnpm@8.6.10
 
-# Copy package files
+# Copy package files and Prisma schema first
 COPY package*.json pnpm-lock.yaml* ./
+COPY prisma ./prisma
 
 # Install production dependencies including prisma
 RUN pnpm install --prod
 
-# Copy built application and Prisma schema
+# Copy built application
 COPY --from=build /app/dist ./dist
-COPY --from=build /app/prisma ./prisma
 
 # Generate Prisma client in production stage
 RUN npx prisma generate --schema=./prisma/schema.prisma
