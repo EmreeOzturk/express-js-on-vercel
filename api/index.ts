@@ -53,7 +53,8 @@ const dynamicCors = cors(async (req, callback) => {
             'http://localhost:9000',
             'https://client-pied-three-94.vercel.app',
             'https://payment-gateway-dats.vercel.app',
-            'https://simulate-payment.vercel.app'
+            'https://simulate-payment.vercel.app',
+            'https://checkout.dltpaymentssystems.com'
         ];
 
         // Combine default origins with dynamic ones
@@ -75,7 +76,8 @@ const dynamicCors = cors(async (req, callback) => {
                 'http://localhost:9000',
                 'https://client-pied-three-94.vercel.app',
                 'https://payment-gateway-dats.vercel.app',
-                'https://simulate-payment.vercel.app'
+                'https://simulate-payment.vercel.app',
+                'https://checkout.dltpaymentssystems.com'
             ],
             methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS', 'PATCH'],
             allowedHeaders: ['Content-Type', 'Authorization'],
@@ -216,7 +218,7 @@ app.post('/api/initiate-payment', async (req: any, res: any) => {
             widgetOptions,
         };
 
-        const reactAppUrl = process.env.NODE_ENV === 'production' ? "https://client-pied-three-94.vercel.app" : 'http://localhost:5173';
+        const reactAppUrl = process.env.NODE_ENV === 'production' ? "https://checkout.dltpaymentssystems.com/" : 'http://localhost:5173';
 
         res.status(200).json({
             success: true,
@@ -264,14 +266,21 @@ app.post('/api/webhook', async (req: any, res: any) => {
         });
 
         // send external webhook to dlt payment
-        const response = await postWebhookData({
+        const webhookResults = await postWebhookData({
             type: type,
             payload: req.body,
         });
 
-        console.log('External webhook response:', response.data);
-        if (response.status !== 200) {
-            console.log('External webhook failed:', response.data);
+        console.log('External webhook results:', webhookResults);
+        
+        // Log success and failure counts
+        const successCount = webhookResults.filter(result => result.success).length;
+        const failureCount = webhookResults.filter(result => !result.success).length;
+        
+        console.log(`Webhook delivery: ${successCount} successful, ${failureCount} failed`);
+        
+        if (failureCount > 0) {
+            console.log('Failed webhook deliveries:', webhookResults.filter(result => !result.success));
         }
 
         console.log(`Event Type: ${type}, Click ID: ${click_id}`);
