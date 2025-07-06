@@ -91,7 +91,7 @@ app.use(express.json());
 
 app.use('/api/admin', adminRoutes);
 
-app.post('api/initiate-payment', async (req: any, res: any) => {
+app.post('/api/initiate-payment', async (req: any, res: any) => {
     console.log('API /initiate-payment called with body:', req.body);
 
     try {
@@ -235,7 +235,7 @@ app.post('api/initiate-payment', async (req: any, res: any) => {
             widgetOptions,
         };
 
-        const reactAppUrl = process.env.NODE_ENV === 'production' ? "https://checkout.dltpaymentssystems.com/" : 'http://localhost:5173';
+        const reactAppUrl = process.env.NODE_ENV === 'production' ? "https://checkout.dltpaymentssystems.com" : 'http://localhost:5173';
 
         res.status(200).json({
             success: true,
