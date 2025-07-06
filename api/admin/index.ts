@@ -158,7 +158,7 @@ router.get('/cors-clients', authenticateToken, async (req: any, res: any) => {
 });
 
 router.post('/cors-clients', authenticateToken, async (req: any, res: any) => {
-    const { domain } = req.body;
+    const { domain, scAddress } = req.body;
 
     if (!domain) {
         return res.status(400).json({ success: false, message: 'Domain is required' });
@@ -173,13 +173,14 @@ router.post('/cors-clients', authenticateToken, async (req: any, res: any) => {
         const client = await prisma.corsClient.create({
             data: {
                 domain: domain.toLowerCase(), // Store in lowercase for consistency
+                scAddress
             },
         });
 
-        res.json({ 
-            success: true, 
+        res.json({
+            success: true,
             message: 'CORS client added successfully',
-            client 
+            client
         });
     } catch (error: any) {
         // P2002 is Prisma's error code for unique constraint violation
@@ -237,8 +238,8 @@ router.patch('/cors-clients/:id/toggle', authenticateToken, async (req: any, res
             data: { isActive: !currentClient.isActive },
         });
 
-        res.json({ 
-            success: true, 
+        res.json({
+            success: true,
             message: `CORS client ${updatedClient.isActive ? 'activated' : 'deactivated'} successfully`,
             client: updatedClient
         });
