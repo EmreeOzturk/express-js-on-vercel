@@ -381,4 +381,10 @@ app.post('/api/webhook', async (req: any, res: any) => {
     }
 });
 
+// Start the server
+const PORT = process.env.PORT || 3001;
+app.listen(PORT, () => {
+    console.log(`Server is running on port ${PORT}`);
+});
+
 export default app;
