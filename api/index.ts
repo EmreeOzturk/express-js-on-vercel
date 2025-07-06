@@ -124,7 +124,7 @@ app.post('/api/initiate-payment', async (req: any, res: any) => {
 
         const completedOrdersToday = await prisma.order.findMany({
             where: {
-                scAddress: scadd.scAddress ? scadd.scAddress : scAddress,
+                scAddress: scAddress,
                 status: 'order_complete',
                 completedAt: {
                     gte: startOfDay,
@@ -207,7 +207,7 @@ app.post('/api/initiate-payment', async (req: any, res: any) => {
         };
 
         const amountToPay = amount - (amount * 0.065);
-        const signedData = signSmartContractData({ address: userAddress, commodity: 'USDT', commodity_amount: amountToPay, network: 'polygon', sc_address: scadd.scAddress ? scadd.scAddress : scAddress, sc_input_data, }, privateKey);
+        const signedData = signSmartContractData({ address: userAddress, commodity: 'USDT', commodity_amount: amountToPay, network: 'polygon', sc_address: scAddress, sc_input_data, }, privateKey);
         const widgetOptions = { partner_id: '01JY1E0PXYR2SR3ZTY27HQ3GP1', click_id: uuidv4(), origin: 'https://widget.wert.io', extra: nftOptions };
 
         // Create or update user information with click_id for tracking
