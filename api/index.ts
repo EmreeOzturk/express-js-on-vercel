@@ -116,6 +116,8 @@ app.post('/api/initiate-payment', async (req: any, res: any) => {
             }
         });
 
+        const scAddress = scadd ? scadd.scAddress : "0x69EdA8b0601C34f3BD0fdAEd7B252D2Db133A4A9"
+
         console.log("scaddd-----------", scadd)
 
 
