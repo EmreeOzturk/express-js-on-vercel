@@ -95,7 +95,9 @@ app.post('/api/initiate-payment', async (req: any, res: any) => {
     console.log('API /initiate-payment called with body:', req.body);
 
     try {
-        const { amount, fullName, email, gsmNumber, scAddress = "0x69EdA8b0601C34f3BD0fdAEd7B252D2Db133A4A9" } = req.body;
+        const { amount, fullName, email, gsmNumber } = req.body;
+        const origin = req.get("Referer")
+
 
         if (!amount || !fullName || !email || !gsmNumber) {
             return res.status(400).json({ success: false, message: 'Missing required fields' });
@@ -106,9 +108,21 @@ app.post('/api/initiate-payment', async (req: any, res: any) => {
         const startOfDay = new Date(today.getFullYear(), today.getMonth(), today.getDate());
         const endOfDay = new Date(today.getFullYear(), today.getMonth(), today.getDate() + 1);
 
+
+        const scadd = await prisma.corsClient.findUnique({
+            where: { domain: origin },
+            select: {
+                scAddress: true
+            }
+        });
+
+        console.log("scaddd-----------", scadd)
+
+
+
         const completedOrdersToday = await prisma.order.findMany({
             where: {
-                scAddress: scAddress,
+                scAddress: scadd.scAddress,
                 status: 'order_complete',
                 completedAt: {
                     gte: startOfDay,
@@ -191,7 +205,7 @@ app.post('/api/initiate-payment', async (req: any, res: any) => {
         };
 
         const amountToPay = amount - (amount * 0.065);
-        const signedData = signSmartContractData({ address: userAddress, commodity: 'USDT', commodity_amount: amountToPay, network: 'polygon', sc_address: scAddress, sc_input_data, }, privateKey);
+        const signedData = signSmartContractData({ address: userAddress, commodity: 'USDT', commodity_amount: amountToPay, network: 'polygon', sc_address: scadd.scAddress, sc_input_data, }, privateKey);
         const widgetOptions = { partner_id: '01JY1E0PXYR2SR3ZTY27HQ3GP1', click_id: uuidv4(), origin: 'https://widget.wert.io', extra: nftOptions };
 
         // Create or update user information with click_id for tracking
@@ -273,13 +287,13 @@ app.post('/api/webhook', async (req: any, res: any) => {
         });
 
         console.log('External webhook results:', webhookResults);
-        
+
         // Log success and failure counts
         const successCount = webhookResults.filter(result => result.success).length;
         const failureCount = webhookResults.filter(result => !result.success).length;
-        
+
         console.log(`Webhook delivery: ${successCount} successful, ${failureCount} failed`);
-        
+
         if (failureCount > 0) {
             console.log('Failed webhook deliveries:', webhookResults.filter(result => !result.success));
         }
