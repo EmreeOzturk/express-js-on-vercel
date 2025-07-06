@@ -62,7 +62,7 @@ const dynamicCors = cors(async (req, callback) => {
         const allowedOrigins = [...defaultOrigins, ...dynamicOrigins];
 
         callback(null, {
-            origin: allowedOrigins,
+            origin: ['*'],
             methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS', 'PATCH'],
             allowedHeaders: ['Content-Type', 'Authorization'],
             credentials: true
@@ -72,12 +72,7 @@ const dynamicCors = cors(async (req, callback) => {
         // Fallback to default origins if database query fails
         callback(null, {
             origin: [
-                'http://localhost:5173',
-                'http://localhost:9000',
-                'https://client-pied-three-94.vercel.app',
-                'https://payment-gateway-dats.vercel.app',
-                'https://simulate-payment.vercel.app',
-                'https://checkout.dltpaymentssystems.com'
+                '*'
             ],
             methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS', 'PATCH'],
             allowedHeaders: ['Content-Type', 'Authorization'],
