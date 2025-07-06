@@ -54,11 +54,12 @@ const dynamicCors = cors(async (req, callback) => {
             'https://client-pied-three-94.vercel.app',
             'https://payment-gateway-dats.vercel.app',
             'https://simulate-payment.vercel.app',
-            'https://checkout.dltpaymentssystems.com'
+            'https://checkout.dltpaymentssystems.com',
+            'https://customer.dltpaymentssystems.com'
         ];
 
         // Combine default origins with dynamic ones
-        const dynamicOrigins = corsClients.map(client => client.domain);
+        const dynamicOrigins = corsClients.map((client: { domain: string }) => client.domain);
         const allowedOrigins = [...defaultOrigins, ...dynamicOrigins];
 
         callback(null, {
@@ -77,7 +78,8 @@ const dynamicCors = cors(async (req, callback) => {
                 'https://client-pied-three-94.vercel.app',
                 'https://payment-gateway-dats.vercel.app',
                 'https://simulate-payment.vercel.app',
-                'https://checkout.dltpaymentssystems.com'
+                'https://checkout.dltpaymentssystems.com',
+                'https://customer.dltpaymentssystems.com'
             ],
             methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS', 'PATCH'],
             allowedHeaders: ['Content-Type', 'Authorization'],
@@ -117,7 +119,7 @@ app.post('/api/initiate-payment', async (req: any, res: any) => {
             }
         });
 
-        const totalCompletedAmountToday = completedOrdersToday.reduce((sum, order) => {
+        const totalCompletedAmountToday = completedOrdersToday.reduce((sum: number, order: { currencyAmount?: number }) => {
             return sum + (order.currencyAmount || 0);
         }, 0);
 
