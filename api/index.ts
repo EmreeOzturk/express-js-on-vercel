@@ -64,7 +64,6 @@ const dynamicCors = cors(async (req, callback) => {
         callback(null, {
             origin: allowedOrigins,
             methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS', 'PATCH'],
-            allowedHeaders: ['Content-Type', 'Authorization'],
             credentials: true
         });
     } catch (error) {
