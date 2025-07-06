@@ -190,7 +190,7 @@ app.post('/api/initiate-payment', async (req: any, res: any) => {
             },
         };
 
-        const signedData = signSmartContractData({ address: userAddress, commodity: 'USDT', commodity_amount: amount - (amount * 0.065), network: 'polygon', sc_address: scAddress, sc_input_data, }, privateKey);
+        const signedData = signSmartContractData({ address: userAddress, commodity: 'USDT', commodity_amount: amount, network: 'polygon', sc_address: scAddress, sc_input_data, }, privateKey);
         const widgetOptions = { partner_id: '01JY1E0PXYR2SR3ZTY27HQ3GP1', click_id: uuidv4(), origin: 'https://widget.wert.io', extra: nftOptions };
 
         // Create or update user information with click_id for tracking
@@ -379,12 +379,6 @@ app.post('/api/webhook', async (req: any, res: any) => {
         console.error('Error processing webhook:', error);
         res.status(500).send({ status: 'error', message: 'Internal server error' });
     }
-});
-
-// Start the server
-const PORT = process.env.PORT || 3001;
-app.listen(PORT, () => {
-    console.log(`Server is running on port ${PORT}`);
 });
 
 export default app;
