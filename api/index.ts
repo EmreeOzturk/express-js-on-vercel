@@ -65,7 +65,7 @@ const dynamicCors = cors(async (req, callback) => {
         callback(null, {
             origin: allowedOrigins,
             methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS', 'PATCH'],
-            allowedHeaders: ['Content-Type', 'Authorization'],
+            allowedHeaders: ['Content-Type', 'Authorization', 'Referer'],
             credentials: true
         });
     } catch (error) {
@@ -82,13 +82,14 @@ const dynamicCors = cors(async (req, callback) => {
                 'https://customer.dltpaymentssystems.com'
             ],
             methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS', 'PATCH'],
-            allowedHeaders: ['Content-Type', 'Authorization'],
+            allowedHeaders: ['Content-Type', 'Authorization', 'Referer'],
             credentials: true
         });
     }
 });
 
 app.use(dynamicCors);
+
 app.use(express.json());
 
 app.use('/api/admin', adminRoutes);
@@ -97,7 +98,9 @@ app.post('/api/initiate-payment', async (req: any, res: any) => {
     console.log('API /initiate-payment called with body:', req.body);
 
     try {
-        const { amount, fullName, email, gsmNumber, scAddress = "0x69EdA8b0601C34f3BD0fdAEd7B252D2Db133A4A9" } = req.body;
+        const { amount, fullName, email, gsmNumber } = req.body;
+        const origin = req.get("Referer")
+
 
         if (!amount || !fullName || !email || !gsmNumber) {
             return res.status(400).json({ success: false, message: 'Missing required fields' });
@@ -107,6 +110,20 @@ app.post('/api/initiate-payment', async (req: any, res: any) => {
         const today = new Date();
         const startOfDay = new Date(today.getFullYear(), today.getMonth(), today.getDate());
         const endOfDay = new Date(today.getFullYear(), today.getMonth(), today.getDate() + 1);
+
+
+        const scadd = await prisma.corsClient.findUnique({
+            where: { domain: origin },
+            select: {
+                scAddress: true
+            }
+        });
+
+        const scAddress = scadd ? scadd.scAddress : "0x69EdA8b0601C34f3BD0fdAEd7B252D2Db133A4A9"
+
+        console.log("scaddd-----------", scadd)
+
+
 
         const completedOrdersToday = await prisma.order.findMany({
             where: {
@@ -221,7 +238,7 @@ app.post('/api/initiate-payment', async (req: any, res: any) => {
             widgetOptions,
         };
 
-        const reactAppUrl = process.env.NODE_ENV === 'production' ? "https://checkout.dltpaymentssystems.com/" : 'http://localhost:5173';
+        const reactAppUrl = process.env.NODE_ENV === 'production' ? "https://checkout.dltpaymentssystems.com" : 'http://localhost:5173';
 
         res.status(200).json({
             success: true,
@@ -275,13 +292,13 @@ app.post('/api/webhook', async (req: any, res: any) => {
         });
 
         console.log('External webhook results:', webhookResults);
-        
+
         // Log success and failure counts
         const successCount = webhookResults.filter(result => result.success).length;
         const failureCount = webhookResults.filter(result => !result.success).length;
-        
+
         console.log(`Webhook delivery: ${successCount} successful, ${failureCount} failed`);
-        
+
         if (failureCount > 0) {
             console.log('Failed webhook deliveries:', webhookResults.filter(result => !result.success));
         }
