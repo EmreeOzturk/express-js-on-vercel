@@ -59,7 +59,7 @@ const dynamicCors = cors(async (req, callback) => {
 
         // Combine default origins with dynamic ones
         const dynamicOrigins = corsClients.map(client => client.domain);
-        const allowedOrigins = [...defaultOrigins, ...dynamicOrigins];
+        const allowedOrigins = [...defaultOrigins, ...dynamicOrigins, "http://localhost:9000"];
 
         callback(null, {
             origin: allowedOrigins,
