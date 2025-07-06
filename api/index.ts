@@ -64,7 +64,7 @@ const dynamicCors = cors(async (req, callback) => {
         callback(null, {
             origin: allowedOrigins,
             methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS', 'PATCH'],
-            allowedHeaders: ['Content-Type', 'Authorization'],
+            allowedHeaders: ['Content-Type', 'Authorization','Referer'],
             credentials: true
         });
     } catch (error) {
@@ -80,7 +80,7 @@ const dynamicCors = cors(async (req, callback) => {
                 'https://checkout.dltpaymentssystems.com'
             ],
             methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS', 'PATCH'],
-            allowedHeaders: ['Content-Type', 'Authorization'],
+            allowedHeaders: ['Content-Type', 'Authorization','Referer'],
             credentials: true
         });
     }
