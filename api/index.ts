@@ -39,54 +39,55 @@ const app = express();
 
 const scAddress: string = "0x69EdA8b0601C34f3BD0fdAEd7B252D2Db133A4A9";
 
-// // Dynamic CORS configuration
-// const dynamicCors = cors(async (req, callback) => {
-//     try {
-//         const corsClients = await prisma.corsClient.findMany({
-//             where: { isActive: true },
-//             select: { domain: true }
-//         });
+// Dynamic CORS configuration
+const dynamicCors = cors(async (req, callback) => {
+    try {
+        const corsClients = await prisma.corsClient.findMany({
+            where: { isActive: true },
+            select: { domain: true }
+        });
 
-//         // Default allowed origins for development and core services
-//         const defaultOrigins = [
-//             'http://localhost:5173',
-//             'http://localhost:9000',
-//             'https://client-pied-three-94.vercel.app',
-//             'https://payment-gateway-dats.vercel.app',
-//             'https://simulate-payment.vercel.app',
-//             'https://checkout.dltpaymentssystems.com'
-//         ];
+        // Default allowed origins for development and core services
+        const defaultOrigins = [
+            'http://localhost:5173',
+            'http://localhost:9000',
+            'https://client-pied-three-94.vercel.app',
+            'https://payment-gateway-dats.vercel.app',
+            'https://simulate-payment.vercel.app',
+            'https://checkout.dltpaymentssystems.com'
+        ];
 
-//         // Combine default origins with dynamic ones
-//         const dynamicOrigins = corsClients.map(client => client.domain);
-//         const allowedOrigins = [...defaultOrigins, ...dynamicOrigins];
+        // Combine default origins with dynamic ones
+        const dynamicOrigins = corsClients.map(client => client.domain);
+        const allowedOrigins = [...defaultOrigins, ...dynamicOrigins];
 
-//         callback(null, {
-//             origin: allowedOrigins,
-//             methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS', 'PATCH'],
-//             allowedHeaders: ['Content-Type', 'Authorization'],
-//             credentials: true
-//         });
-//     } catch (error) {
-//         console.error('Error fetching CORS clients:', error);
-//         // Fallback to default origins if database query fails
-//         callback(null, {
-//             origin: [
-//                 'http://localhost:5173',
-//                 'http://localhost:9000',
-//                 'https://client-pied-three-94.vercel.app',
-//                 'https://payment-gateway-dats.vercel.app',
-//                 'https://simulate-payment.vercel.app',
-//                 'https://checkout.dltpaymentssystems.com'
-//             ],
-//             methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS', 'PATCH'],
-//             allowedHeaders: ['Content-Type', 'Authorization'],
-//             credentials: true
-//         });
-//     }
-// });
+        callback(null, {
+            origin: allowedOrigins,
+            methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS', 'PATCH'],
+            allowedHeaders: ['Content-Type', 'Authorization'],
+            credentials: true
+        });
+    } catch (error) {
+        console.error('Error fetching CORS clients:', error);
+        // Fallback to default origins if database query fails
+        callback(null, {
+            origin: [
+                'http://localhost:5173',
+                'http://localhost:9000',
+                'https://client-pied-three-94.vercel.app',
+                'https://payment-gateway-dats.vercel.app',
+                'https://simulate-payment.vercel.app',
+                'https://checkout.dltpaymentssystems.com'
+            ],
+            methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS', 'PATCH'],
+            allowedHeaders: ['Content-Type', 'Authorization'],
+            credentials: true
+        });
+    }
+});
 
-// app.use(dynamicCors);
+app.use(dynamicCors);
+
 app.use(express.json());
 
 app.use('/api/admin', adminRoutes);
