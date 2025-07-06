@@ -65,7 +65,7 @@ const dynamicCors = cors(async (req, callback) => {
         callback(null, {
             origin: allowedOrigins,
             methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS', 'PATCH'],
-            allowedHeaders: ['Content-Type', 'Authorization', 'Referer'],
+            allowedHeaders: ['Content-Type', 'Authorization', 'Referer', 'Origin', 'Host'],
             credentials: true
         });
     } catch (error) {
@@ -82,7 +82,7 @@ const dynamicCors = cors(async (req, callback) => {
                 'https://customer.dltpaymentssystems.com'
             ],
             methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS', 'PATCH'],
-            allowedHeaders: ['Content-Type', 'Authorization', 'Referer'],
+            allowedHeaders: ['Content-Type', 'Authorization', 'Referer', 'Origin', 'Host'],
             credentials: true
         });
     }
@@ -99,7 +99,17 @@ app.post('/api/initiate-payment', async (req: any, res: any) => {
 
     try {
         const { amount, fullName, email, gsmNumber } = req.body;
-        const origin = req.get("Referer")
+        
+        // Domain bilgisini almak için birden fazla yöntem deneyelim
+        const origin = req.get("Origin") || 
+                      req.get("Referer")?.replace(/^https?:\/\/[^\/]+/, '') || 
+                      req.get("Host") ||
+                      req.headers.host;
+        
+        console.log("origin-----------", origin)
+        console.log("Origin header:", req.get("Origin"))
+        console.log("Referer header:", req.get("Referer"))
+        console.log("Host header:", req.get("Host"))
 
 
         if (!amount || !fullName || !email || !gsmNumber) {
