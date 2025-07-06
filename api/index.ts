@@ -91,7 +91,7 @@ app.use(express.json());
 
 app.use('/api/admin', adminRoutes);
 
-app.post('/api/initiate-payment', async (req: any, res: any) => {
+app.post('api/initiate-payment', async (req: any, res: any) => {
     console.log('API /initiate-payment called with body:', req.body);
 
     try {
