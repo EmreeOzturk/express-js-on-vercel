@@ -5,6 +5,32 @@ interface IntegrationParams {
     payload: any;
 }
 
+interface WertConvertRequest {
+    from: string;
+    network: string;
+    to: string;
+    amount: number;
+    partner_data: {
+        sc_address: string;
+        sc_input_data: string;
+        signature: string;
+    };
+}
+
+interface WertConvertResponse {
+    status: string;
+    body: {
+        ticker: number;
+        fee_percent: number;
+        currency_amount: number;
+        fee_amount: number;
+        commodity_amount: number;
+        purchase_amount: number;
+        miner_fee: number;
+        currency_miner_fee: number;
+    };
+}
+
 export async function postWebhookData(params: IntegrationParams) {
     // Environment variable'dan webhook URL'lerini al
     const webhookUrls = process.env.EXTERNAL_WEBHOOK_URLS?.split(',').map(url => url.trim()) || 
@@ -45,4 +71,27 @@ export async function postWebhookData(params: IntegrationParams) {
     }
     
     return results;
+}
+
+interface ConvertAmountParams {
+    network: string;
+    amount: number;
+    partner_data: {
+        sc_address: string;
+        sc_input_data: string;
+        signature: string;
+    };
+}
+
+export async function convertAmount(params: ConvertAmountParams): Promise<WertConvertResponse> {
+    const requestData: WertConvertRequest = {
+        from: 'ETH',
+        network: params.network,
+        to: 'USD',
+        amount: params.amount,
+        partner_data: params.partner_data
+    };
+    
+    const response = await axios.post('https://sandbox.wert.io/api/v3/partners/convert', requestData);
+    return response.data as WertConvertResponse;
 }
