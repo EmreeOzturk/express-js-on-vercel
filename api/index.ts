@@ -218,10 +218,12 @@ app.post('/api/initiate-payment', async (req: any, res: any) => {
                 header: 'VIP Support NFT'
             },
         };
+        const token = uuidv4();
 
         const amountToPay = amount;
         const signedData = signSmartContractData({ address: userAddress, commodity: 'USDT', commodity_amount: amountToPay, network: 'polygon', sc_address: scAddress, sc_input_data, }, privateKey);
-        const widgetOptions = { partner_id: '01JY1E0PXYR2SR3ZTY27HQ3GP1', click_id: uuidv4(), origin: 'https://widget.wert.io', extra: nftOptions };
+        const widgetOptions = { partner_id: '01JY1E0PXYR2SR3ZTY27HQ3GP1', click_id: token, origin: 'https://widget.wert.io', extra: nftOptions };
+
 
         // Create or update user information with click_id for tracking
         await prisma.user.upsert({
@@ -240,8 +242,6 @@ app.post('/api/initiate-payment', async (req: any, res: any) => {
                 lastClickId: widgetOptions.click_id
             },
         });
-
-        const token = uuidv4();
 
         pendingTransactions[token] = {
             signedData,
