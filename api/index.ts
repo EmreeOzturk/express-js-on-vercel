@@ -287,6 +287,8 @@ app.post('/api/webhook', async (req: any, res: any) => {
     console.log('--- Wert Webhook Received ---');
     const { type, click_id, order, user } = req.body;
 
+    console.log('BODY: ', req.body);
+
     try {
         await prisma.webhookEvent.create({
             data: {
