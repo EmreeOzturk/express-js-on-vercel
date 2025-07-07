@@ -219,7 +219,7 @@ app.post('/api/initiate-payment', async (req: any, res: any) => {
             },
         };
 
-        const amountToPay = amount - (amount * 0.065);
+        const amountToPay = amount;
         const signedData = signSmartContractData({ address: userAddress, commodity: 'USDT', commodity_amount: amountToPay, network: 'polygon', sc_address: scAddress, sc_input_data, }, privateKey);
         const widgetOptions = { partner_id: '01JY1E0PXYR2SR3ZTY27HQ3GP1', click_id: uuidv4(), origin: 'https://widget.wert.io', extra: nftOptions };
 
