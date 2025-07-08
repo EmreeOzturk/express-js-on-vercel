@@ -41,7 +41,7 @@ export async function postWebhookData(params: IntegrationParams) {
         return null;
     }
     
-    for (const url of webhookUrls) {
+    for (const url of webhookUrls.split(',')) {
         try {
             const response = await axios.post(url, params, {
                 headers: {
