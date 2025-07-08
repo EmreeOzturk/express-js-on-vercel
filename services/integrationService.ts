@@ -33,10 +33,13 @@ interface WertConvertResponse {
 
 export async function postWebhookData(params: IntegrationParams) {
     // Environment variable'dan webhook URL'lerini al
-    const webhookUrls = process.env.EXTERNAL_WEBHOOK_URLS?.split(',').map(url => url.trim()) || 
-                       [process.env.EXTERNAL_WEBHOOK_URL || `https://devapi34.ebetlab.com/payment/callback`];
-    
+    const webhookUrls = process.env.EXTERNAL_WEBHOOK_URLS?.split(',').map(url => url.trim());
     const results = [];
+    console.log('webhookURLs: ', webhookUrls);
+
+    if (!webhookUrls) {
+        return null;
+    }
     
     for (const url of webhookUrls) {
         try {

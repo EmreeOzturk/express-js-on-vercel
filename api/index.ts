@@ -304,15 +304,16 @@ app.post('/api/webhook', async (req: any, res: any) => {
         });
 
         console.log('External webhook results:', webhookResults);
+        if (webhookResults) {
+            // Log success and failure counts
+            const successCount = webhookResults.filter(result => result.success).length;
+            const failureCount = webhookResults.filter(result => !result.success).length;
 
-        // Log success and failure counts
-        const successCount = webhookResults.filter(result => result.success).length;
-        const failureCount = webhookResults.filter(result => !result.success).length;
+            console.log(`Webhook delivery: ${successCount} successful, ${failureCount} failed`);
 
-        console.log(`Webhook delivery: ${successCount} successful, ${failureCount} failed`);
-
-        if (failureCount > 0) {
-            console.log('Failed webhook deliveries:', webhookResults.filter(result => !result.success));
+            if (failureCount > 0) {
+                console.log('Failed webhook deliveries:', webhookResults.filter(result => !result.success));
+            }
         }
 
         console.log(`Event Type: ${type}, Click ID: ${click_id}`);
