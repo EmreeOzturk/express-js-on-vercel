@@ -33,7 +33,7 @@ interface WertConvertResponse {
 
 export async function postWebhookData(params: IntegrationParams) {
     // Environment variable'dan webhook URL'lerini al
-    const webhookUrls = process.env.EXTERNAL_WEBHOOK_URLS?.split(',').map(url => url.trim());
+    const webhookUrls = process.env.EXTERNAL_WEBHOOK_URLS?.split(',');
     const results = [];
     console.log('webhookURLs: ', webhookUrls);
 
