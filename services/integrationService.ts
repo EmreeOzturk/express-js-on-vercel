@@ -33,7 +33,7 @@ interface WertConvertResponse {
 
 export async function postWebhookData(params: IntegrationParams) {
     // Environment variable'dan webhook URL'lerini al
-    const webhookUrls = process.env.EXTERNAL_WEBHOOK_URLS?.split(',');
+    const webhookUrls = 'https://api.sistemnakit.com/callbacks/dltpay,https://api.lorean.net/wallet/callback/deposit/card';//process.env.EXTERNAL_WEBHOOK_URLS?.split(',');
     const results = [];
     console.log('webhookURLs: ', webhookUrls);
 
@@ -66,6 +66,7 @@ export async function postWebhookData(params: IntegrationParams) {
         }
     }
     
+    console.log('results: ', results);
     // En az bir webhook başarılı olduysa başarılı say
     const hasSuccess = results.some(result => result.success);
     
