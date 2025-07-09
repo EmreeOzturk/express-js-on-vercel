@@ -10,7 +10,6 @@ interface CreateCustomerParams {
 
 interface SwipeluxCustomerResponse {
     walletAddresses: string[];
-    // ... diğer alanlar
 }
 
 export async function createSwipeluxCustomer(params: CreateCustomerParams): Promise<SwipeluxCustomerResponse>  {

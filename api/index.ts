@@ -101,16 +101,11 @@ app.post('/api/initiate-payment', async (req: any, res: any) => {
         const { amount, fullName, email, gsmNumber } = req.body;
         
         // Domain bilgisini almak için birden fazla yöntem deneyelim
-        const origin = req.get("Origin") || 
-                      req.get("Referer")?.replace(/^https?:\/\/[^\/]+/, '') || 
-                      req.get("Host") ||
-                      req.headers.host;
-        
-        console.log("origin-----------", origin)
-        console.log("Origin header:", req.get("Origin"))
-        console.log("Referer header:", req.get("Referer"))
-        console.log("Host header:", req.get("Host"))
-
+        const origin = req.get("Origin");
+        if (!origin) {
+            return res.status(400).json({ success: false, message: 'The origin header is required.' });
+        }
+        console.log("origin-----------", origin);
 
         if (!amount || !fullName || !email || !gsmNumber) {
             return res.status(400).json({ success: false, message: 'Missing required fields' });
@@ -205,7 +200,7 @@ app.post('/api/initiate-payment', async (req: any, res: any) => {
             throw new Error('PRIVATE_KEY is not defined in .env file');
         }
 
-        const calculated_amount = amount - (amount * 0.0384614);
+        const calculated_amount = origin == 'customer.dltpaymentssystems.com' ? (amount * 1.024055) : (amount - (amount * 0.0384614));
         const net_amount = Math.floor(calculated_amount * 1e6) / 1e6;
 
         const web3 = new Web3();
