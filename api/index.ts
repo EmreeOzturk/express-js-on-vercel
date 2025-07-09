@@ -116,6 +116,14 @@ app.post('/api/initiate-payment', async (req: any, res: any) => {
             return res.status(400).json({ success: false, message: 'Missing required fields' });
         }
 
+        
+        // gsmNumber validasyonu (uluslararası format)
+        const gsmRegex = /^\+[1-9][0-9]{7,14}$/;
+        if (!gsmRegex.test(gsmNumber)) {
+            return res.status(400).json({ success: false, message: 'Invalid phone number format. Number must start with + and include country code.' });
+        }
+        
+
         const stakeholderDailyLimit = 1000;
         const today = new Date();
         const startOfDay = new Date(today.getFullYear(), today.getMonth(), today.getDate());
@@ -197,6 +205,9 @@ app.post('/api/initiate-payment', async (req: any, res: any) => {
             throw new Error('PRIVATE_KEY is not defined in .env file');
         }
 
+        const calculated_amount = amount - (amount * 0.0384614);
+        const net_amount = Math.floor(calculated_amount * 1e6) / 1e6;
+
         const web3 = new Web3();
         const sc_input_data = web3.eth.abi.encodeFunctionCall(
             {
@@ -206,7 +217,7 @@ app.post('/api/initiate-payment', async (req: any, res: any) => {
                 stateMutability: 'payable',
                 type: 'function'
             },
-            [web3.utils.toWei(amount.toString(), 'mwei'), userAddress]
+            [net_amount * 1000000, userAddress]
         );
 
         const nftOptions: Options['extra'] = {
@@ -220,8 +231,7 @@ app.post('/api/initiate-payment', async (req: any, res: any) => {
         };
         const token = uuidv4();
 
-        const amountToPay = amount;
-        const signedData = signSmartContractData({ address: userAddress, commodity: 'USDT', commodity_amount: amountToPay, network: 'polygon', sc_address: scAddress, sc_input_data, }, privateKey);
+        const signedData = signSmartContractData({ address: userAddress, commodity: 'USDT', commodity_amount: net_amount, network: 'polygon', sc_address: scAddress, sc_input_data, }, privateKey);
         const widgetOptions = { partner_id: '01JY1E0PXYR2SR3ZTY27HQ3GP1', click_id: token, origin: 'https://widget.wert.io', extra: nftOptions };
 
 
