@@ -126,7 +126,7 @@ app.post('/api/initiate-payment', async (req: any, res: any) => {
 
 
         const scadd = await prisma.corsClient.findUnique({
-            where: { domain: origin },
+            where: { domain: 'https://' + origin },
             select: {
                 scAddress: true
             }
