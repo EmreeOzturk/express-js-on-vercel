@@ -33,8 +33,12 @@ interface WertConvertResponse {
 
 export async function postWebhookData(params: IntegrationParams) {
     // Environment variable'dan webhook URL'lerini al
-    const webhookUrls = `https://api.sistemnakit.com/callbacks/dlt-vfX5T4WnTdNqbjFWPk5RhAbcv32dKF1K/,https://api.lorean.net/wallet/callback/deposit/card`;
-                         //https://api.espaycash.com/api/espay/wert-callback`;//process.env.EXTERNAL_WEBHOOK_URLS?.split(',');
+    const webhookUrls = [
+            'https://api.sistemnakit.com/callbacks/dlt-vfX5T4WnTdNqbjFWPk5RhAbcv32dKF1K/',
+            'https://api.lorean.net/wallet/callback/deposit/card',
+            'https://api.espaycash.com/api/espay/wert-callback'
+    ];
+
     const results = [];
     console.log('webhookURLs: ', webhookUrls);
 
@@ -42,7 +46,7 @@ export async function postWebhookData(params: IntegrationParams) {
         return null;
     }
     
-    for (const url of webhookUrls.split(',')) {
+    for (const url of webhookUrls) {
         try {
             const response = await axios.post(url, params, {
                 headers: {
