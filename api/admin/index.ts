@@ -65,6 +65,12 @@ router.post('/login', async (req: any, res: any) => {
 router.get('/users', authenticateToken, async (req: any, res: any) => {
     try {
         const users = await prisma.user.findMany({
+            where: {
+                OR: [
+                    { email: { not: null } },
+                    { walletAddress: { not: null } }
+                ]
+            },
             orderBy: {
                 createdAt: 'desc',
             },
